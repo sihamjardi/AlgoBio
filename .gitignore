@@ -1,0 +1,17 @@
+# Python / ML binaries
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.onnx
+
+# Python caches
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
