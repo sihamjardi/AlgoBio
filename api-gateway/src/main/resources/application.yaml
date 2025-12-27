@@ -1,0 +1,30 @@
+server:
+  port: 8088
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+          - id: sequence-service
+            uri: lb://SEQUENCE-SERVICE
+            predicates:
+              - Path=/api/sequences,/api/sequences/**
+          - id: alignment-service
+            uri: lb://ALIGNMENT-SERVICE
+            predicates:
+              - Path=/api/alignment,/api/alignment/**
+          - id: mutation-service
+            uri: lb://MUTATION-SERVICE
+            predicates:
+              - Path=/api/mutations,/api/mutations/**
+
+  eureka:
+    client:
+      enabled: true
+      service-url:
+        defaultZone: http://localhost:8761/eureka
