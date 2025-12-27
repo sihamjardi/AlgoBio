@@ -1,13 +1,19 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
-import { Sparkles, Upload, Brain, CheckCircle2 } from "lucide-react";
-import { Progress } from "./ui/progress";
 import { Badge } from "./ui/badge";
+import { Progress } from "./ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import { Sparkles, Upload, Brain, CheckCircle2 } from "lucide-react";
 
 type TopK = { label: string; prob: number };
-
 type PredictResponse = {
   label_type: string;
   prediction: string;
@@ -16,11 +22,150 @@ type PredictResponse = {
   reason?: string;
 };
 
+// ==== Types / Helpers History ====
+type Seq = {
+  id: number | string;
+  name?: string;
+  length?: number;
+  createdAt?: string;
+  classification?: string;
+  sequence?: string;
+  seq?: string;
+  dna?: string;
+  content?: string;
+};
+
+const clean = (s: string) => s.replace(/\s/g, "").toUpperCase();
+const getSeqString = (s: Seq) =>
+  (s.sequence ?? s.seq ?? s.dna ?? s.content ?? "").toString();
+
+function HistoryPicker({
+  title,
+  onPick,
+}: {
+  title: string;
+  onPick: (dna: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [history, setHistory] = useState<Seq[]>([]);
+  const [q, setQ] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    (async () => {
+      try {
+        setErr(null);
+        setLoading(true);
+
+
+        const r = await fetch("/api/sequences");
+        if (!r.ok) throw new Error(await r.text());
+        const data = await r.json();
+
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.content)
+          ? data.content
+          : Array.isArray(data?.data)
+          ? data.data
+          : [];
+
+        setHistory(list);
+      } catch (e: any) {
+        setHistory([]);
+        setErr(e?.message || "Erreur fetch history");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [open]);
+
+  const filtered = useMemo(() => {
+    const qq = q.trim().toLowerCase();
+    if (!qq) return history;
+    return history.filter((s) => {
+      const name = (s.name ?? "").toLowerCase();
+      const id = String(s.id ?? "");
+      const cls = (s.classification ?? "").toLowerCase();
+      return name.includes(qq) || id.includes(qq) || cls.includes(qq);
+    });
+  }, [history, q]);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button type="button" variant="outline" size="sm">
+          <Upload className="w-3 h-3 mr-2" /> Import from History
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+
+        <input
+          className="w-full border rounded px-3 py-2 text-sm"
+          placeholder="Search by name / id / classification..."
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
+
+        {loading && <div className="text-sm text-gray-600 mt-2">Loading...</div>}
+        {err && <div className="text-sm text-red-600 mt-2">Erreur: {err}</div>}
+
+        <div className="max-h-[360px] overflow-auto border rounded mt-3">
+          {!loading &&
+            filtered.map((s) => {
+              const dna = getSeqString(s);
+              return (
+                <button
+                  key={String(s.id)}
+                  type="button"
+                  onClick={() => {
+                    if (!dna) {
+                      setErr(
+                        "Cette entrée n'a pas de champ sequence dans la réponse backend (ajoute-le ou fais un endpoint GET /api/sequences/{id})."
+                      );
+                      return;
+                    }
+                    onPick(dna);
+                    setOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-50 border-b"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="font-medium">
+                      {s.name ?? "Unnamed"}{" "}
+                      <span className="text-xs text-gray-500">#{s.id}</span>
+                    </div>
+                    <div className="text-xs text-gray-500">{s.length ?? "—"} bp</div>
+                  </div>
+                  <div className="text-xs text-gray-500 truncate">
+                    {dna ? dna.slice(0, 120) : "(no sequence field)"}
+                  </div>
+                </button>
+              );
+            })}
+
+          {!loading && filtered.length === 0 && (
+            <div className="p-3 text-sm text-gray-500">No sequences found.</div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function AIClassification() {
   const [sequence, setSequence] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<PredictResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const performClassification = async () => {
     setIsAnalyzing(true);
@@ -39,23 +184,33 @@ export function AIClassification() {
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        // FastAPI renvoie {"detail": "..."}
-        setError(data?.detail ?? "Erreur API");
-      } else {
-        setResult(data as PredictResponse);
-      }
-    } catch (e: any) {
-      setError("Impossible de contacter le serveur FastAPI (vérifie qu’il tourne sur 127.0.0.1:8000).");
+      if (!res.ok) setError(data?.detail ?? "Erreur API");
+      else setResult(data as PredictResponse);
+    } catch {
+      setError(
+        "Impossible de contacter le serveur FastAPI (vérifie qu’il tourne sur 127.0.0.1:8000)."
+      );
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  const dnaLen = sequence.replace(/\s/g, "").length;
+  const dnaLen = clean(sequence).length;
+  const confidencePct = result ? Math.round(result.prob * 1000) / 10 : 0;
 
-  const confidencePct = result ? Math.round(result.prob * 1000) / 10 : 0; // ex: 0.199 -> 19.9%
+  // ==== Upload File handler ====
+  const onPickFile = async (file: File | null) => {
+    if (!file) return;
+    const text = await file.text();
+
+    // FASTA: enlever les headers ">"
+    const lines = text
+      .split(/\r?\n/)
+      .filter((l) => !l.trim().startsWith(">"))
+      .join("");
+
+    setSequence(lines);
+  };
 
   return (
     <div className="space-y-6">
@@ -64,7 +219,9 @@ export function AIClassification() {
         <h2 className="text-2xl mb-2 flex items-center gap-2">
           <Sparkles className="w-7 h-7 text-purple-600" /> AI Classification
         </h2>
-        <p className="text-gray-600">Classification ADN (famille virale) via ton microservice FastAPI</p>
+        <p className="text-gray-600">
+          Classification ADN (famille virale) via ton microservice FastAPI
+        </p>
       </div>
 
       {/* Input Section */}
@@ -73,9 +230,31 @@ export function AIClassification() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3>Input Sequence</h3>
-              <Button variant="outline" size="sm" disabled>
-                <Upload className="w-3 h-3 mr-2" /> Upload File (optionnel)
-              </Button>
+
+              <div className="flex gap-2">
+                {/* Import from History */}
+                <HistoryPicker
+                  title="Import sequence from History"
+                  onPick={(dna) => setSequence(dna)}
+                />
+
+                {/* Upload File */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".txt,.fasta,.fa,.fna"
+                  className="hidden"
+                  onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="w-3 h-3 mr-2" /> Upload File
+                </Button>
+              </div>
             </div>
 
             <Textarea
@@ -113,23 +292,35 @@ export function AIClassification() {
           </div>
         </Card>
 
-        {/* Info Card (tu peux garder la tienne, ici version simple) */}
         <Card className="p-6 border-0 shadow-md bg-gradient-to-br from-purple-50 to-pink-50">
-          <div className="space-y-2 text-sm">
+          <div className="space-y-3 text-sm">
             <div>
-              <p className="text-gray-600">API</p>
-              <p className="font-mono">POST /predict</p>
+              <p className="text-gray-600">About this AI</p>
+              <p className="text-gray-800">
+                This module automatically classifies viral DNA sequences into their
+                biological family using a machine learning model trained on curated
+                viral genomes.
+              </p>
             </div>
+
             <div>
-              <p className="text-gray-600">Dataset</p>
-              <p className="font-mono">DNA-LLM/virus_detailed_clean</p>
+              <p className="text-gray-600">How it works</p>
+              <p className="text-gray-800">
+                The sequence is transformed into k‑mer features and analyzed by a
+                probabilistic classifier to predict the most likely viral family.
+              </p>
             </div>
+
             <div>
-              <p className="text-gray-600">Min length</p>
-              <p className="font-mono">{/* juste info UI */}meta.pkl</p>
+              <p className="text-gray-600">Model & Data</p>
+              <p className="font-mono text-xs">
+                Dataset: DNA‑LLM / virus_detailed_clean<br/>
+                Output: Virus family + Top‑K probabilities
+              </p>
             </div>
           </div>
         </Card>
+
       </div>
 
       {/* Results */}
@@ -168,11 +359,16 @@ export function AIClassification() {
                   {result.top_k.map((x, i) => {
                     const pct = Math.round(x.prob * 1000) / 10;
                     return (
-                      <div key={i} className="flex items-center justify-between p-3 bg-white rounded-xl">
+                      <div
+                        key={i}
+                        className="flex items-center justify-between p-3 bg-white rounded-xl"
+                      >
                         <div className="font-mono">{x.label}</div>
                         <div className="flex items-center gap-3">
                           <Progress value={Math.min(100, pct)} className="w-28 h-2" />
-                          <div className="w-14 text-right text-sm text-gray-600">{pct}%</div>
+                          <div className="w-14 text-right text-sm text-gray-600">
+                            {pct}%
+                          </div>
                         </div>
                       </div>
                     );
