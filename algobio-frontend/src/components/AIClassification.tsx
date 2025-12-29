@@ -220,7 +220,7 @@ export function AIClassification() {
           <Sparkles className="w-7 h-7 text-purple-600" /> AI Classification
         </h2>
         <p className="text-gray-600">
-          Classification ADN (famille virale) via ton microservice FastAPI
+          Classification ADN (famille virale)
         </p>
       </div>
 
@@ -258,7 +258,7 @@ export function AIClassification() {
             </div>
 
             <Textarea
-              placeholder="Colle ta séquence ADN ici..."
+              placeholder="Paste the sequence..."
               value={sequence}
               onChange={(e) => setSequence(e.target.value)}
               className="min-h-[300px] font-mono text-sm"
@@ -268,7 +268,8 @@ export function AIClassification() {
               <p className="text-xs text-gray-500">Length: {dnaLen} caractères</p>
 
               <Button
-                onClick={performClassification}
+                type="button"
+                onClick={(e) => { e.preventDefault(); performClassification(); }}
                 disabled={!sequence || isAnalyzing}
                 className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
               >

@@ -2,6 +2,8 @@ package com.example.algobio.mutation.entity;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "mutation_variants")
 public class MutationVariant {
@@ -9,10 +11,13 @@ public class MutationVariant {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
     @ManyToOne(optional=false)
     @JoinColumn(name="simulation_id")
     private MutationSimulation simulation;
 
+    @Column(nullable=false)
+    private LocalDateTime createdAt = LocalDateTime.now();
     @Column(nullable=false, length=12000)
     private String mutatedSequence;
 
@@ -28,7 +33,6 @@ public class MutationVariant {
     @Column(nullable=false)
     private double identityPercent;
 
-    // getters/setters
     public Long getId() { return id; }
 
     public MutationSimulation getSimulation() { return simulation; }
@@ -48,4 +52,12 @@ public class MutationVariant {
 
     public double getIdentityPercent() { return identityPercent; }
     public void setIdentityPercent(double identityPercent) { this.identityPercent = identityPercent; }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }

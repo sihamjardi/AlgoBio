@@ -18,6 +18,7 @@ public class MutationSimulation {
     @Column(nullable=false)
     private String mutationType;
 
+
     @Column(nullable=false)
     private double mutationRate;
 
@@ -29,6 +30,9 @@ public class MutationSimulation {
 
     @Column(nullable=false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name="user_id", nullable=false)
+    private Long userId;
 
     @OneToMany(mappedBy="simulation", cascade=CascadeType.ALL, orphanRemoval=true)
     private List<MutationVariant> variants = new ArrayList<>();

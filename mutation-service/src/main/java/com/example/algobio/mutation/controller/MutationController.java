@@ -7,11 +7,12 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @CrossOrigin(origins="*")
 @RestController
 @RequestMapping("/api/mutations")
 public class MutationController {
-
     private final MutationService service;
 
     public MutationController(MutationService service) {
@@ -27,4 +28,12 @@ public class MutationController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping("/stats")
+    public Map<String, Long> stats() {
+        return service.stats();
+    }
+
+
+
 }

@@ -6,7 +6,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins="*")
 @RestController
 @RequestMapping("/api/alignment")
 public class AlignmentController {
@@ -20,12 +20,9 @@ public class AlignmentController {
     @PostMapping
     public ResponseEntity<?> align(@Valid @RequestBody AlignmentRequest request) {
         try {
-            AlignmentResponse res = service.align(
-                    request.getSeq1(),
-                    request.getSeq2(),
-                    request.getAlgorithm()
+            return ResponseEntity.ok(
+                    service.align(request.getSeq1(), request.getSeq2(), request.getAlgorithm())
             );
-            return ResponseEntity.ok(res);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

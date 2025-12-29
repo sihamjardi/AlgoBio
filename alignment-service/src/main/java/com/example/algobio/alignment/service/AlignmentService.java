@@ -5,6 +5,9 @@ import com.example.algobio.alignment.dto.AlignmentResponse;
 import com.example.algobio.alignment.entity.AlignmentResult;
 import com.example.algobio.alignment.repository.AlignmentResultRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+
+import java.util.Map;
 
 @Service
 public class AlignmentService {
@@ -192,4 +195,9 @@ public class AlignmentService {
 
         return comparable == 0 ? 0.0 : (matches * 100.0) / comparable;
     }
+    @GetMapping("/stats")
+    public Map<String, Long> stats() {
+        return Map.of("alignments", repo.count());
+    }
+
 }

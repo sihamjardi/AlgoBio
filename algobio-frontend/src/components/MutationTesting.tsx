@@ -177,8 +177,7 @@ export function MutationTesting() {
           Mutation Testing
         </h2>
         <p className="text-gray-600">
-          Génère des variantes mutées (substitution / insertion / délétion) et compare
-          l’alignement avec la séquence originale.
+          Generates mutated variants (substitution / insertion / deletion) and compares the alignment with the original sequence.
         </p>
       </div>
 
@@ -188,7 +187,7 @@ export function MutationTesting() {
           <div className="space-y-1">
             <h3 className="mb-1">Source de la séquence</h3>
             <p className="text-sm text-gray-600">
-              Soit tu colles une séquence, soit tu utilises une séquence existante via ID.
+              You can either paste a sequence, or use an existing sequence via ID.
             </p>
           </div>
 
@@ -197,7 +196,7 @@ export function MutationTesting() {
               variant={useSequenceId ? "outline" : "default"}
               onClick={() => setUseSequenceId(false)}
             >
-              Coller une séquence
+              Paste a sequence
             </Button>
             <Button
               variant={useSequenceId ? "default" : "outline"}
@@ -222,9 +221,6 @@ export function MutationTesting() {
                 onChange={(e) => setSequenceId(e.target.value === "" ? "" : Number(e.target.value))}
                 className="mt-1"
               />
-              <p className="text-xs text-gray-500 mt-2">
-                Le backend va appeler <code>SEQUENCE-SERVICE</code> pour récupérer la séquence.
-              </p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -247,11 +243,8 @@ export function MutationTesting() {
       {/* Parameters */}
       <Card className="p-6 border-0 shadow-md">
         <div className="mb-6">
-          <h3 className="mb-1">Paramètres de mutation</h3>
-          <p className="text-sm text-gray-600">
-            Ton backend génère <b>variants</b> séquences, en appliquant environ{" "}
-            <b>len × mutationRate</b> opérations.
-          </p>
+          <h3 className="mb-1">Mutation parameters</h3>
+
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

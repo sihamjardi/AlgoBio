@@ -32,7 +32,7 @@ public class AlignmentResult {
     @Column(nullable = false)
     private double identityPercent;
 
-    @Column(nullable = false)
+    @Column(name = "created_at" , nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public Long getId() { return id; }

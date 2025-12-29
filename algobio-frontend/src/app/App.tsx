@@ -1,13 +1,12 @@
-
 import { useState } from "react";
-import { 
-  LayoutDashboard, 
-  Dna, 
-  GitCompare, 
-  Sparkles, 
-  FlaskConical, 
-  Microscope, 
-  Database, 
+import {
+  LayoutDashboard,
+  Dna,
+  GitCompare,
+  Sparkles,
+  FlaskConical,
+  Microscope,
+  Database,
   Settings as SettingsIcon,
   Menu,
   X
@@ -17,19 +16,23 @@ import { SequenceInput } from "../components/SequenceInput";
 import { CompareSequences } from "../components/CompareSequences";
 import { AIClassification } from "../components/AIClassification";
 import { MutationTesting } from "../components/MutationTesting";
-import { SimilaritySearch } from "../components/SimilaritySearch";
+import { AlignmentHistory } from "../components/AlignmentHistory";
 import { SequenceHistory } from "../components/SequenceHistory";
+import { MutationSimulations } from "../components/MutationSimulations";
+import { AIClassificationHistory } from "../components/AIClassificationHistory";
 import { Settings } from "../components/Settings";
 import { Button } from "../components/ui/button";
 
-type Page = 
-  | "dashboard" 
-  | "sequence-input" 
-  | "compare" 
-  | "ai-classification" 
-  | "mutation-testing" 
-  | "similarity-search" 
-  | "history" 
+type Page =
+  | "dashboard"
+  | "sequence-input"
+  | "compare"
+  | "ai-classification"
+  | "mutation-testing"
+  | "alignment-history"
+  | "mutation-simulations"
+  | "ai-classification-library"
+  | "history"
   | "settings";
 
 interface NavItem {
@@ -45,7 +48,9 @@ const navigation: NavItem[] = [
   { id: "compare", label: "Compare Sequences", icon: GitCompare, gradient: "from-green-500 to-emerald-500" },
   { id: "ai-classification", label: "AI Classification", icon: Sparkles, gradient: "from-violet-500 to-purple-500" },
   { id: "mutation-testing", label: "Test Mutations", icon: FlaskConical, gradient: "from-orange-500 to-red-500" },
-  { id: "similarity-search", label: "BLAST Search", icon: Microscope, gradient: "from-cyan-500 to-blue-500" },
+  { id: "alignment-history", label: "Alignment Library", icon: Microscope, gradient: "from-cyan-500 to-blue-500" },
+  { id: "mutation-simulations", label: "Mutation Simulations", icon: Microscope, gradient: "from-green-500 to-yellow-500" },
+  { id: "ai-classification-library", label: "AI Classification Library", icon: Microscope, gradient: "from-red-500 to-pink-500" },
   { id: "history", label: "Sequence Library", icon: Database, gradient: "from-indigo-500 to-blue-500" },
   { id: "settings", label: "Settings", icon: SettingsIcon, gradient: "from-gray-500 to-slate-500" },
 ];
@@ -53,6 +58,7 @@ const navigation: NavItem[] = [
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
 
   const renderPage = () => {
     switch (currentPage) {
@@ -66,8 +72,12 @@ export default function App() {
         return <AIClassification />;
       case "mutation-testing":
         return <MutationTesting />;
-      case "similarity-search":
-        return <SimilaritySearch />;
+      case "alignment-history":
+        return <AlignmentHistory />;
+      case "mutation-simulations":
+        return <MutationSimulations />;
+      case "ai-classification-library":
+        return <AIClassificationHistory  />;
       case "history":
         return <SequenceHistory />;
       case "settings":
@@ -80,7 +90,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
       {/* Sidebar */}
-      <aside 
+      <aside
         className={`
           fixed top-0 left-0 h-screen bg-white border-r border-gray-200 shadow-lg z-50 transition-transform duration-300
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
@@ -99,9 +109,9 @@ export default function App() {
                 <p className="text-xs text-gray-500">Bioinformatics Suite</p>
               </div>
             </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               className="lg:hidden"
               onClick={() => setSidebarOpen(false)}
             >
@@ -115,7 +125,7 @@ export default function App() {
           {navigation.map((item) => {
             const Icon = item.icon;
             const isActive = currentPage === item.id;
-            
+
             return (
               <button
                 key={item.id}
@@ -125,8 +135,8 @@ export default function App() {
                 }}
                 className={`
                   w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all
-                  ${isActive 
-                    ? `bg-gradient-to-r ${item.gradient} text-white shadow-md` 
+                  ${isActive
+                    ? `bg-gradient-to-r ${item.gradient} text-white shadow-md`
                     : "text-gray-700 hover:bg-gray-100"
                   }
                 `}
@@ -149,7 +159,7 @@ export default function App() {
 
       {/* Mobile Overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -161,9 +171,9 @@ export default function App() {
         <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
           <div className="px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 className="lg:hidden"
                 onClick={() => setSidebarOpen(true)}
               >

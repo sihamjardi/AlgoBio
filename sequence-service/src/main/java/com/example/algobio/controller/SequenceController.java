@@ -44,4 +44,5 @@ public class SequenceController {
             return ResponseEntity.notFound().build();
         }
     }
+
 }

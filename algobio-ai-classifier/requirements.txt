@@ -5,3 +5,9 @@ numpy
 scikit-learn
 datasets
 python-multipart
+
+sqlalchemy
+psycopg2-binary
+pydantic-settings
+matplotlib
+pandas

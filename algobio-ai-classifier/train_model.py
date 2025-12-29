@@ -1,10 +1,24 @@
-# train_model.py
 from datasets import load_dataset
 from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
+from sklearn.calibration import CalibratedClassifierCV
+
 from collections import Counter
+from sklearn.svm import LinearSVC
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn.metrics import (
+    accuracy_score, f1_score, precision_score, recall_score,
+    confusion_matrix, ConfusionMatrixDisplay,
+    roc_curve, auc
+)
+from sklearn.preprocessing import label_binarize
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
 import numpy as np
 import joblib
 
@@ -28,7 +42,7 @@ def main():
     ds = load_dataset("DNA-LLM/virus_detailed_clean", split="train")
 
     print(" Filter DNA only...")
-    ds = ds.filter(is_dna, num_proc=1)  # Windows safe
+    ds = ds.filter(is_dna, num_proc=1)  
 
     seqs = [clean_seq(x) for x in ds["seq"]]
     labels = ds[LABEL_COL]
@@ -57,26 +71,14 @@ def main():
         norm="l2"
     )
 
+    
     classes = np.unique(y_train)
 
-    model = SGDClassifier(
-        loss="log_loss",
-        max_iter=1,
-        tol=None,
-        n_jobs=-1
-    )
-
+    base = LinearSVC()
+    model = CalibratedClassifierCV(base, method="sigmoid", cv=3)  
     print(" Training...")
-    for epoch in range(EPOCHS):
-        print(f"Epoch {epoch+1}/{EPOCHS}")
-        for start in range(0, len(X_train), BATCH):
-            bx = X_train[start:start+BATCH]
-            by = y_train[start:start+BATCH]
-            Xv = vectorizer.transform(bx)
-            if epoch == 0 and start == 0:
-                model.partial_fit(Xv, by, classes=classes)
-            else:
-                model.partial_fit(Xv, by)
+    X_train_v = vectorizer.transform(X_train)
+    model.fit(X_train_v, y_train)
 
     print(" Evaluation")
     X_test_v = vectorizer.transform(X_test)

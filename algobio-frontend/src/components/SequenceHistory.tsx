@@ -2,6 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { Badge } from "./ui/badge";
+
+import { Suspense } from "react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, useGLTF } from "@react-three/drei";
 import {
   Table,
   TableBody,
@@ -21,7 +26,7 @@ import {
   Filter,
   Loader2,
 } from "lucide-react";
-import { Badge } from "./ui/badge";
+
 
 // =====================
 // Types
@@ -64,6 +69,11 @@ function downloadTextFile(filename: string, content: string, mime = "text/plain"
   a.remove();
   URL.revokeObjectURL(url);
 }
+function HumanDNAModel() {
+  const { scene } = useGLTF("/models/human_dna/scene.gltf");
+  return <primitive object={scene} scale={1.2} />;
+}
+useGLTF.preload("/models/human_dna/scene.gltf");
 
 function toCSV(rows: Record<string, any>[]) {
   if (!rows.length) return "";
@@ -85,6 +95,8 @@ function cleanDNA(s: string) {
   return (s ?? "").replace(/\s+/g, "").toUpperCase();
 }
 
+
+
 function gcPercent(seq: string) {
   const s = cleanDNA(seq);
   if (!s.length) return 0;
@@ -92,7 +104,6 @@ function gcPercent(seq: string) {
   return +(100 * (gc / s.length)).toFixed(2);
 }
 
-// heuristique simple (UI only)
 function classifyHeuristic(seq: string) {
   const s = cleanDNA(seq);
   const len = s.length;
@@ -147,7 +158,6 @@ export function SequenceHistory() {
     { a: Sequence; b: Sequence; score: number; identity: number }[]
   >([]);
 
-  // Classify modal state
   const [classifyOpen, setClassifyOpen] = useState(false);
   const [classifyRows, setClassifyRows] = useState<
     { id: number; name: string; length: number; gc: number; predicted: string; reason: string }[]
@@ -170,26 +180,7 @@ export function SequenceHistory() {
     })();
   }, []);
 
-  useEffect(() => {
-    if (!view3DSequence) return;
 
-    const loadViewer = () => {
-      if (!document.getElementById("viewer3d")) return setTimeout(loadViewer, 100);
-      // @ts-ignore
-      if (!window.$3Dmol) return setTimeout(loadViewer, 200);
-
-      // @ts-ignore
-      const viewer = new window.$3Dmol.Viewer("viewer3d", { backgroundColor: "white" });
-
-      viewer.addModelFromUrl("https://files.rcsb.org/download/1BNA.pdb", "pdb", () => {
-        viewer.setStyle({}, { cartoon: { color: "spectrum" } });
-        viewer.zoomTo();
-        viewer.render();
-      });
-    };
-
-    loadViewer();
-  }, [view3DSequence]);
 
   const filteredSequences = useMemo(() => {
     const q = searchQuery.toLowerCase();
@@ -229,16 +220,14 @@ export function SequenceHistory() {
     setCompareError(null);
     setCompareResults([]);
     if (selectedObjects.length < 2) {
-      setCompareError("Sélectionne au moins 2 séquences pour comparer.");
+      setCompareError("Select min 2 sequences to compare.");
       setCompareOpen(true);
       return;
     }
 
-    // limite anti-explosion : max 10 séquences => 45 paires
     const MAX = 10;
     const list = selectedObjects.slice(0, MAX);
 
-    // toutes les paires (i < j)
     const pairs: [Sequence, Sequence][] = [];
     for (let i = 0; i < list.length; i++) {
       for (let j = i + 1; j < list.length; j++) pairs.push([list[i], list[j]]);
@@ -531,15 +520,32 @@ export function SequenceHistory() {
       {/* 3D Modal */}
       {view3DSequence && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="p-4 w-[600px] h-[500px] relative">
-            <h2 className="text-xl mb-2">{view3DSequence.name} – 3D View</h2>
-            <div id="viewer3d" className="w-full h-[400px] border rounded bg-white" />
-            <Button className="absolute top-2 right-2" variant="ghost" onClick={() => setView3DSequence(null)}>
+          <Card className="p-4 w-[700px] h-[520px] relative">
+            <h2 className="text-xl mb-2">{view3DSequence.name} – DNA 3D Model</h2>
+
+            <div className="w-full h-[430px] rounded border bg-white overflow-hidden">
+              <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
+                <ambientLight intensity={0.8} />
+                <directionalLight position={[2, 2, 2]} intensity={1} />
+                <Suspense fallback={<div className="p-4">Loading 3D model...</div>}>
+                  <HumanDNAModel />
+                </Suspense>
+
+                <OrbitControls makeDefault />
+              </Canvas>
+            </div>
+
+            <Button
+              className="absolute top-2 right-2"
+              variant="ghost"
+              onClick={() => setView3DSequence(null)}
+            >
               ✕
             </Button>
           </Card>
         </div>
       )}
+
 
       {/* Compare Modal */}
       {compareOpen && (

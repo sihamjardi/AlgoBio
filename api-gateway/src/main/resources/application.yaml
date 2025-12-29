@@ -23,6 +23,17 @@ spring:
             predicates:
               - Path=/api/mutations,/api/mutations/**
 
+          - id: ai-classifier
+            uri: lb://AI-CLASSIFIER
+            predicates:
+              - Path=/api/ai/**
+            filters:
+              - StripPrefix=2
+          - id: auth-service
+            uri: lb://AUTH-SERVICE
+            predicates:
+              - Path=/api/auth,/api/auth/**
+
   eureka:
     client:
       enabled: true

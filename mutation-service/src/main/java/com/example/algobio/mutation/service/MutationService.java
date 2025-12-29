@@ -7,11 +7,13 @@ import com.example.algobio.mutation.dto.*;
 import com.example.algobio.mutation.entity.MutationSimulation;
 import com.example.algobio.mutation.entity.MutationVariant;
 import com.example.algobio.mutation.repository.MutationSimulationRepository;
+import com.example.algobio.mutation.repository.MutationVariantRepository;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class MutationService {
@@ -19,6 +21,7 @@ public class MutationService {
     private final AlignmentClient alignmentClient;
     private final SequenceClient sequenceClient;
     private final MutationSimulationRepository simulationRepo;
+    private final MutationVariantRepository variantRepo;
 
     private final SecureRandom rng = new SecureRandom();
     private static final char[] BASES = {'A','T','C','G'};
@@ -26,11 +29,13 @@ public class MutationService {
     public MutationService(
             AlignmentClient alignmentClient,
             SequenceClient sequenceClient,
-            MutationSimulationRepository simulationRepo
+            MutationSimulationRepository simulationRepo,
+            MutationVariantRepository variantRepo
     ) {
         this.alignmentClient = alignmentClient;
         this.sequenceClient = sequenceClient;
         this.simulationRepo = simulationRepo;
+        this.variantRepo = variantRepo;
     }
 
     public MutationSimulateResponse simulate(MutationSimulateRequest req) {
@@ -120,4 +125,12 @@ public class MutationService {
         do { b = BASES[rng.nextInt(BASES.length)]; } while (b == oldBase);
         return b;
     }
+
+    public Map<String, Long> stats() {
+        return Map.of(
+                "simulations", simulationRepo.count(),
+                "variants", variantRepo.count()
+        );
+    }
+
 }

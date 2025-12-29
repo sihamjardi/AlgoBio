@@ -25,6 +25,7 @@ public class Sequence {
 
     private int length;
 
+
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 

@@ -17,3 +17,21 @@ node_modules/
 Thumbs.db
 
 *.pkl
+# secrets
+.env
+**/.env
+
+# python cache
+__pycache__/
+*.pyc
+
+# node
+node_modules/
+**/node_modules/
+
+# logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
