@@ -52,7 +52,7 @@ Bio-informatique · ADN · Alignement · Similarité · Mutations · Microservic
 - Comparaison avant/après :
   - score,
   - identité,
-  - similarité (si activée)
+  - similarité 
 
 ### 5) Classification IA (IA Classifier MS)
 - Classification d’une séquence ADN (ex. famille virale)
@@ -85,7 +85,7 @@ Le frontend orchestre les appels via **Fetch/Axios**.
 ### Backend (Microservices)
 - **Spring Boot (Java 21)** (services principaux)
 - **FastAPI (Python)** (microservice IA)
-- **PostgreSQL** (ou MySQL)
+- **PostgreSQL**
 
 ### IA / ML
 - **scikit-learn**
@@ -94,6 +94,7 @@ Le frontend orchestre les appels via **Fetch/Axios**.
 
 ### Frontend
 - **React** (UI)
+- Vite
 - Composants UI (Card, Button, Dialog, etc.)
 
 ---
