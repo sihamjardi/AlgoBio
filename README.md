@@ -67,6 +67,9 @@ Bio-informatique · ADN · Alignement · Similarité · Mutations · Microservic
 
 ## Architecture microservices
 
+<img width="877" height="443" alt="image" src="https://github.com/user-attachments/assets/4e91bd54-6674-413d-a9d8-af340eb5a74f" />
+
+
 La plateforme est structurée en **microservices indépendants**, chacun responsable d’un domaine métier :
 
 - **Auth MS** : comptes & sécurité (JWT)
